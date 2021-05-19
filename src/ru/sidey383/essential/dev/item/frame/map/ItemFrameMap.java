@@ -59,9 +59,11 @@ public abstract class ItemFrameMap implements Listener{
 		if(pixel[0] > 127 || pixel[0] < 0 || pixel[1] > 127 || pixel[1] < 0)
 			return;
 		double dist = 100.0;
-		if(maxDistance > 0  ) dist = maxDistance;
+		if(maxDistance > 0  ) dist = maxDistance;	
 		if(rayTraycingCheck(e.getPlayer(),dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing())) 
 		{
+			if(isCanceled)
+				e.setCancelled(true);
 			pixel = calculateFrameRotation(pixel, itemFrame.getRotation(), itemFrame.getFacing());
 			onFrameClick(pixel[0], pixel[1], e);
 		}
@@ -70,9 +72,11 @@ public abstract class ItemFrameMap implements Listener{
 	@EventHandler
 	public void onInteract(PlayerInteractEntityEvent e) 
 	{
-		if(e.getPlayer() == null || e.getPlayer().getLocation() == null) 
-			return;
 		if(itemFrame == null || !itemFrame.equals(e.getRightClicked()))
+			return;
+		if(isCanceled)
+			e.setCancelled(true);
+		if(e.getPlayer() == null || e.getPlayer().getLocation() == null) 
 			return;
 		double[] playerHead = locationToArray(e.getPlayer().getEyeLocation());
 		double[] playerLook = new double[] {e.getPlayer().getEyeLocation().getDirection().getX(),e.getPlayer().getEyeLocation().getDirection().getY(),e.getPlayer().getEyeLocation().getDirection().getZ()};

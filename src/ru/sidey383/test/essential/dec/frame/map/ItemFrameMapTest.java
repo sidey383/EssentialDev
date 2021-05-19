@@ -69,13 +69,11 @@ public class ItemFrameMapTest extends ItemFrameMap{
 
 	@Override
 	public void onFrameClick(int x, int y, PlayerInteractEvent e) {
-		e.setCancelled(true);
 		map[x][y] = 64;
 		e.getPlayer().sendMap(mv);
 	}
 	@Override
 	public void onFrameClick(int x, int y, PlayerInteractEntityEvent e) {
-		e.setCancelled(true);
 		map[x][y] = 64;
 		e.getPlayer().sendMap(mv);
 	}
