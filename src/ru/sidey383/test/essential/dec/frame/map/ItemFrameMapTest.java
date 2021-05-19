@@ -5,8 +5,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapCanvas;
@@ -15,6 +13,7 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 
+import ru.sidey383.essential.dev.item.frame.map.FrameClickAction;
 import ru.sidey383.essential.dev.item.frame.map.ItemFrameMap;
 
 public class ItemFrameMapTest extends ItemFrameMap{
@@ -67,14 +66,10 @@ public class ItemFrameMapTest extends ItemFrameMap{
 		return map;
 	}
 
+
 	@Override
-	public void onFrameClick(int x, int y, PlayerInteractEvent e) {
+	public void onClick(int x, int y, Player p, FrameClickAction action) {
 		map[x][y] = 64;
-		e.getPlayer().sendMap(mv);
-	}
-	@Override
-	public void onFrameClick(int x, int y, PlayerInteractEntityEvent e) {
-		map[x][y] = 64;
-		e.getPlayer().sendMap(mv);
+		p.sendMap(mv);
 	}
 }

@@ -9,6 +9,8 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.Plugin;
@@ -40,10 +42,15 @@ public abstract class ItemFrameMap implements Listener{
 		return itemFrame;
 	}
 	
-	public abstract void onFrameClick(int x, int y, PlayerInteractEvent e);
+	public void onFrameClick(int x, int y, PlayerInteractEvent e) {}
 	
-	public abstract void onFrameClick(int x, int y, PlayerInteractEntityEvent e);
+	public void onFrameClick(int x, int y, PlayerInteractEntityEvent e) {}
 		
+	public void onFrameClick(int x, int y, BlockBreakEvent e) {}
+	
+	public void onFrameClick(int x, int y, EntityDamageByEntityEvent e) {}
+		
+	public abstract void onClick(int x, int y, Player p, FrameClickAction action);
 	
 	@EventHandler
 	public void onInteract(PlayerInteractEvent e) 
@@ -66,6 +73,26 @@ public abstract class ItemFrameMap implements Listener{
 				e.setCancelled(true);
 			pixel = calculateFrameRotation(pixel, itemFrame.getRotation(), itemFrame.getFacing());
 			onFrameClick(pixel[0], pixel[1], e);
+			FrameClickAction act = null;
+			switch (e.getAction())
+			{
+				case LEFT_CLICK_AIR:
+					act = FrameClickAction.LEFT_CLICK_AIR;
+					break;
+				case RIGHT_CLICK_AIR:
+					act = FrameClickAction.RIGHT_CLICK_AIR;
+					break;
+				case LEFT_CLICK_BLOCK:
+					act = FrameClickAction.LEFT_CLICK_BLOCK;
+					break;
+				case RIGHT_CLICK_BLOCK:
+					act = FrameClickAction.RIGHT_CLICK_BLOCK;
+					break;
+				case PHYSICAL:
+					act = FrameClickAction.PHYSICAL;
+					break;
+			}
+			onClick(pixel[0], pixel[1], e.getPlayer(), act);
 		}
 	}
 	
@@ -89,6 +116,57 @@ public abstract class ItemFrameMap implements Listener{
 		
 		pixel = calculateFrameRotation(pixel, itemFrame.getRotation(), itemFrame.getFacing());
 		onFrameClick(pixel[0], pixel[1], e);
+		onClick(pixel[0], pixel[1], e.getPlayer(), FrameClickAction.RIGHT_CLICK_FRAME);
+	}
+	
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent e)
+	{
+		if(e.getPlayer() == null || e.getPlayer().getLocation() == null) 
+			return;
+		double[] fLoc = locationToArray(itemFrame.getLocation());
+		double[] playerHead = locationToArray(e.getPlayer().getEyeLocation());
+		double[] playerLook = new double[] {e.getPlayer().getEyeLocation().getDirection().getX(),e.getPlayer().getEyeLocation().getDirection().getY(),e.getPlayer().getEyeLocation().getDirection().getZ()};
+		
+		int[] pixel = getMapPixel(fLoc, playerLook, playerHead, itemFrame.getFacing());
+		if(pixel == null) return;
+		if(pixel[0] > 127 || pixel[0] < 0 || pixel[1] > 127 || pixel[1] < 0)
+			return;
+		double dist = 100.0;
+		if(maxDistance > 0  ) dist = maxDistance;	
+		if(rayTraycingCheck(e.getPlayer(),dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing())) 
+		{
+			if(isCanceled)
+				e.setCancelled(true);
+			pixel = calculateFrameRotation(pixel, itemFrame.getRotation(), itemFrame.getFacing());
+			onFrameClick(pixel[0], pixel[1], e);
+			onClick(pixel[0], pixel[1], e.getPlayer(), FrameClickAction.BLOCK_BREAK);
+		}
+	}
+	
+	public void onDamage(EntityDamageByEntityEvent e) 
+	{
+		if(e.getDamager() == null || !(e.getDamager() instanceof Player) || ((Player)e.getDamager()).getLocation() == null) 
+			return;
+		double[] fLoc = locationToArray(itemFrame.getLocation());
+		Player pl = ((Player)e.getDamager());
+		double[] playerHead = locationToArray(pl.getEyeLocation());
+		double[] playerLook = new double[] {pl.getEyeLocation().getDirection().getX(),pl.getEyeLocation().getDirection().getY(),pl.getEyeLocation().getDirection().getZ()};
+		
+		int[] pixel = getMapPixel(fLoc, playerLook, playerHead, itemFrame.getFacing());
+		if(pixel == null) return;
+		if(pixel[0] > 127 || pixel[0] < 0 || pixel[1] > 127 || pixel[1] < 0)
+			return;
+		double dist = 100.0;
+		if(maxDistance > 0  ) dist = maxDistance;	
+		if(rayTraycingCheck(pl,dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing())) 
+		{
+			if(isCanceled)
+				e.setCancelled(true);
+			pixel = calculateFrameRotation(pixel, itemFrame.getRotation(), itemFrame.getFacing());
+			onFrameClick(pixel[0], pixel[1], e);
+			onClick(pixel[0], pixel[1], pl, FrameClickAction.FRAME_BREAK);
+		}
 	}
 	
 	public void cancelEvents(boolean cancel)
