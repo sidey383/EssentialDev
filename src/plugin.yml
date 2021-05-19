@@ -1,0 +1,5 @@
+name: EssentialDevTest
+main: ru.sidey383.test.Plugin
+version: 1.0
+api-version: 1.14
+author: NezuShin
