@@ -1,7 +1,12 @@
 package ru.sidey383.essential.dev.db.table;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
+
+import ru.sidey383.essential.dev.db.DataBase;
 
 
 public abstract class SQLTable {
@@ -62,4 +67,12 @@ public abstract class SQLTable {
 	 * **/
 	protected abstract List<SQLField> tableFields();
 	
+	public void createTable(DataBase db) throws SQLException
+	{
+		Connection con = db.getConnection();
+		Statement st = con.createStatement();
+		st.execute(getCreateString());
+		st.close();
+		con.close();
+	}
 }
