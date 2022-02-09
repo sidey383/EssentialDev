@@ -14,8 +14,21 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface ConfigProperty {
 
-	public String Path();
-	
-	public String Name() default "";
-	
+	/**
+	 * path to field in YamlConfiguration
+	 * **/
+	String Path();
+
+	/**
+	 * name of the associated configuration
+	 * **/
+	String Name() default "";
+
+	/**
+	 * field mask for Enum's
+	 * required for non-static Enum fields
+	 * the path to the non-static Enum field is Path() + "." + Enum.toString() + "." + FieldMask()
+	 * **/
+	String FieldMask() default "";
+
 }

@@ -18,19 +18,25 @@ import org.bukkit.util.RayTraceResult;
 
 public abstract class ItemFrameMap implements Listener{
 
-	private Location location;
+	private final Location location;
 	private ItemFrame itemFrame;
 	private boolean isCanceled = true;
 	private double maxDistance = -1;
-	
-	public ItemFrameMap(Location location, BlockFace face, Plugin plugin) 
-	{
+
+	/**
+	 * @param location - location of new ItemFrame
+	 * @param face - Facing of new ItemFrame
+	 * @param plugin - owner
+	 * **/
+	public ItemFrameMap(Location location, BlockFace face, Plugin plugin) {
+		if(location.getWorld() == null)
+			throw new IllegalArgumentException("wrong location");
 		itemFrame = (ItemFrame) location.getWorld().spawnEntity(location, EntityType.ITEM_FRAME);
 		itemFrame.setFacingDirection(face);	
 		this.location = itemFrame.getLocation();
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
-	
+
 	public void setBlockFace(BlockFace face) 
 	{
 		if(face == itemFrame.getFacing()) return;
@@ -41,15 +47,46 @@ public abstract class ItemFrameMap implements Listener{
 	{
 		return itemFrame;
 	}
-	
-	public void onFrameClick(int x, int y, PlayerInteractEvent e) {}
-	
-	public void onFrameClick(int x, int y, PlayerInteractEntityEvent e) {}
-		
-	public void onFrameClick(int x, int y, BlockBreakEvent e) {}
-	
-	public void onFrameClick(int x, int y, EntityDamageByEntityEvent e) {}
-		
+
+	/**
+	 * called for each interaction with this ItemFrame
+	 * @param x - x position of interacted pixel regarding the drawing on the map
+	 * @param y - y position of interacted pixel regarding the drawing on the map
+	 * @param e - event that triggered it
+	 * **/
+	public abstract void onFrameClick(int x, int y, PlayerInteractEvent e);
+
+	/**
+	 * called for each interaction with this ItemFrame
+	 * @param x - x position of interacted pixel regarding the drawing on the map
+	 * @param y - y position of interacted pixel regarding the drawing on the map
+	 * @param e - event that triggered it
+	 * **/
+	public abstract void onFrameClick(int x, int y, PlayerInteractEntityEvent e);
+
+	/**
+	 * called for each interaction with this ItemFrame
+	 * @param x - x position of interacted pixel regarding the drawing on the map
+	 * @param y - y position of interacted pixel regarding the drawing on the map
+	 * @param e - event that triggered it
+	 * **/
+	public abstract void onFrameClick(int x, int y, BlockBreakEvent e);
+
+	/**
+	 * called for each interaction with this ItemFrame
+	 * @param x - x position of interacted pixel regarding the drawing on the map
+	 * @param y - y position of interacted pixel regarding the drawing on the map
+	 * @param e - event that triggered it
+	 * **/
+	public abstract void onFrameClick(int x, int y, EntityDamageByEntityEvent e);
+
+	/**
+	 * called for each interaction with this ItemFrame
+	 * @param x - x position of interacted pixel regarding the drawing on the map
+	 * @param y - y position of interacted pixel regarding the drawing on the map
+	 * @param p - player interacting with the map
+	 * @param action - action taken
+	 * **/
 	public abstract void onClick(int x, int y, Player p, FrameClickAction action);
 	
 	@EventHandler
@@ -67,7 +104,7 @@ public abstract class ItemFrameMap implements Listener{
 			return;
 		double dist = 100.0;
 		if(maxDistance > 0  ) dist = maxDistance;	
-		if(rayTraycingCheck(e.getPlayer(),dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing())) 
+		if(rayTracingCheck(e.getPlayer(),dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing()))
 		{
 			if(isCanceled)
 				e.setCancelled(true);
@@ -134,7 +171,7 @@ public abstract class ItemFrameMap implements Listener{
 			return;
 		double dist = 100.0;
 		if(maxDistance > 0  ) dist = maxDistance;	
-		if(rayTraycingCheck(e.getPlayer(),dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing())) 
+		if(rayTracingCheck(e.getPlayer(),dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing()))
 		{
 			if(isCanceled)
 				e.setCancelled(true);
@@ -159,7 +196,7 @@ public abstract class ItemFrameMap implements Listener{
 			return;
 		double dist = 100.0;
 		if(maxDistance > 0  ) dist = maxDistance;	
-		if(rayTraycingCheck(pl,dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing())) 
+		if(rayTracingCheck(pl,dist, itemFrame.getLocation().getBlockX(), itemFrame.getLocation().getBlockY(), itemFrame.getLocation().getBlockZ(), itemFrame.getFacing()))
 		{
 			if(isCanceled)
 				e.setCancelled(true);
@@ -169,21 +206,24 @@ public abstract class ItemFrameMap implements Listener{
 		}
 	}
 	
-	public void cancelEvents(boolean cancel)
-	{
+	public void cancelEvents(boolean cancel)  {
 		isCanceled = cancel;
 	}
 	
-	public boolean eventsIsCanceled() 
-	{
+	public boolean eventsIsCanceled() {
 		return isCanceled;
 	}
-	
-	public double getMaxDistance() 
-	{
+
+	/**
+	 * @return max rayTracing check distance
+	 * **/
+	public double getMaxDistance() {
 		return maxDistance;
 	}
-	
+
+	/**
+	 * @param distance - max rayTracing check distance
+	 * **/
 	public void setMaxDistance(double distance) 
 	{
 		maxDistance = distance;
@@ -292,7 +332,7 @@ public abstract class ItemFrameMap implements Listener{
 				usualFrameLocatio[0] -= 0.04;
 			frameSurface = 0;
 		}
-		double[] result = calculate—oordinates(usualFrameLocatio, playerLook, playerHead, frameSurface);
+		double[] result = calculateCoordinates(usualFrameLocatio, playerLook, playerHead, frameSurface);
 		if(result == null) return null; 
 		if(frameSurface == 0)
 		{
@@ -312,7 +352,7 @@ public abstract class ItemFrameMap implements Listener{
 		return pixels;
 	}
 	
-	private static double[] calculate—oordinates(double normilizeFrameLocatio[], double playerLook[], double playerHead[], int frameSurafce) 
+	private static double[] calculateCoordinates(double normilizeFrameLocatio[], double playerLook[], double playerHead[], int frameSurafce)
 	{
 		double[] pos = new double[] {normilizeFrameLocatio[0] - playerHead[0], normilizeFrameLocatio[1] - playerHead[1], normilizeFrameLocatio[2] - playerHead[2]};;
 		if(playerLook[frameSurafce] == 0 ||  pos[frameSurafce] * playerLook[frameSurafce] < 0) return null;
@@ -323,7 +363,7 @@ public abstract class ItemFrameMap implements Listener{
 						(pos[2] -  (playerLook[2] * pos[frameSurafce])/ playerLook[frameSurafce])};
 	}
 	
-	private static boolean rayTraycingCheck(Player p, double dist, int x, int y, int z, BlockFace frameFace) 
+	private static boolean rayTracingCheck(Player p, double dist, int x, int y, int z, BlockFace frameFace)
 	{
 		RayTraceResult res = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), dist);
 		if(res.getHitBlockFace() == null) 
@@ -336,8 +376,7 @@ public abstract class ItemFrameMap implements Listener{
 		return true;
 	}
 
-	private static Location moveTo(BlockFace face, Location loc) 
-	{
+	private static Location moveTo(BlockFace face, Location loc) {
 		switch(face) 
 		{
 		case DOWN:
@@ -356,9 +395,11 @@ public abstract class ItemFrameMap implements Listener{
 			return loc;
 		}
 	}
-	
-	public void respawnFrame() 
-	{
+
+	/**
+	 * spawn new ItemFrame
+	 * **/
+	public void respawnFrame() {
 		itemFrame = (ItemFrame) location.getWorld().spawnEntity(location, EntityType.ITEM_FRAME);
 	}
 	
